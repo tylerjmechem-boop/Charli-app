@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#0b1020" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+
+  <title>Charlie’s Spelling + Math</title>
+
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111a33; --muted:#93a4c7; --text:#eaf0ff;
+      --accent:#4ea3ff; --good:#38d996; --bad:#ff5c7a; --warn:#ffcc66;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --pad: 16px;
+      --font: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--font); background: radial-gradient(1200px 700px at 30% 0%, #17224a 0%, var(--bg) 45%);
+      color:var(--text); min-height:100vh; display:flex; align-items:stretch; justify-content:center;
+    }
+    .wrap{width:min(980px, 100%); padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));}
+    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;}
+    .brand{display:flex; align-items:center; gap:10px;}
+    .logo{
+      width:44px; height:44px; border-radius:14px; background: linear-gradient(135deg, #4ea3ff, #8b5cff);
+      display:grid; place-items:center; box-shadow:var(--shadow);
+      font-weight:900;
+    }
+    .brand h1{font-size:18px; margin:0}
+    .pill{display:inline-flex; gap:10px; align-items:center; padding:10px 12px; border-radius:999px; background: rgba(255,255,255,.06);}
+    .pill small{color:var(--muted)}
+    .grid{display:grid; grid-template-columns: 1.15fr .85fr; gap:14px;}
+    @media (max-width:860px){ .grid{grid-template-columns:1fr} }
+    .card{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px var(--pad);
+      display:flex; align-items:center; justify-content:space-between;
+      background: rgba(255,255,255,.04);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .card .hd .title{font-weight:800}
+    .card .bd{padding: var(--pad)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+    input, textarea, select{
+      width:100%; padding:12px 12px;
+      background: rgba(10,14,30,.7);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius: 12px;
+      outline:none;
+      font-size: 16px;
+    }
+    textarea{min-height:140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    @media (max-width:560px){ .two{grid-template-columns:1fr} }
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      padding:12px 14px; border-radius: 14px;
+      font-weight:800; font-size:16px;
+      color: #071022;
+      background: linear-gradient(135deg, #4ea3ff, #7df3d2);
+      box-shadow: var(--shadow);
+      width:100%;
+    }
+    .btn.secondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:none;
+    }
+    .btn.danger{
+      background: rgba(255,92,122,.14);
+      color: var(--text);
+      border: 1px solid rgba(255,92,122,.35);
+    }
+    .btn:active{transform: translateY(1px)}
+    .muted{color:var(--muted)}
+    .badge{
+      padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size:12px; color: var(--muted);
+    }
+    .big{
+      font-size: 22px; font-weight: 900; letter-spacing: .2px; margin:0 0 8px 0;
+    }
+    .score{display:flex; gap:10px; flex-wrap:wrap}
+    .score .chip{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight:800;
+    }
+    .feedback{
+      margin-top:10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      font-size: 18px;
+      white-space: pre-line;
+    }
+    .feedback.good{border-color: rgba(56,217,150,.35); background: rgba(56,217,150,.12)}
+    .feedback.bad{border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.12)}
+    .progress{height:10px; background: rgba(255,255,255,.10); border-radius: 999px; overflow:hidden}
+    .progress > div{height:100%; width:0%; background: linear-gradient(90deg, #4ea3ff, #7df3d2)}
+    .avatarWrap{display:flex; gap:12px; align-items:center}
+    .avatar{
+      width:64px; height:64px; border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      display:grid; place-items:center;
+      overflow:hidden;
+    }
+    .avatar img{width:100%; height:100%; object-fit:cover}
+    .tiny{font-size:12px}
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px;}
+    canvas#confetti{position:fixed; inset:0; pointer-events:none; z-index:1000}
+    .modalBack{
+      position:fixed; inset:0; background: rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:999;
+      padding: 16px;
+    }
+    .modal{width:min(520px, 100%); background: rgba(17,26,51,.98); border:1px solid rgba(255,255,255,.14); border-radius: 18px; box-shadow: var(--shadow); overflow:hidden}
+    .modal .hd{padding: 14px 16px; border-bottom:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; align-items:center}
+    .modal .bd{padding: 16px}
+    .x{cursor:pointer; font-weight:900; padding:6px 10px; border-radius: 12px; background: rgba(255,255,255,.08)}
+    .hint{color:var(--muted); font-size:12px; line-height:1.35}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <h1 id="appTitle">Charlie’s Spelling + Math</h1>
+          <div class="muted tiny">Offline-capable • Add to Home Screen for “app mode”</div>
+        </div>
+      </div>
+      <div class="pill">
+        <small id="modePill">Parent Mode</small>
+        <span class="badge" id="deckPill">Mixed</span>
+        <span class="badge" id="practicePill">Practice</span>
+        <span class="badge" id="shufflePill">Shuffle On</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="hd">
+          <div class="title" id="mainTitle">Parent Mode</div>
+          <div class="row" style="gap:8px">
+            <button class="btn danger" id="btnExitKid" style="display:none; width:auto;">Exit</button>
+          </div>
+        </div>
+        <div class="bd" id="mainBody"></div>
+      </div>
+
+      <div class="card">
+        <div class="hd">
+          <div class="title">Status</div>
+          <span class="badge kbd" id="statusHint">PWA • localStorage</span>
+        </div>
+        <div class="bd">
+          <div class="avatarWrap">
+            <div class="avatar" id="avatarBox"><span class="muted">🙂</span></div>
+            <div>
+              <div class="big" style="margin:0" id="childNameBig">Charlie</div>
+              <div class="muted tiny">Stars & streak reset each session.</div>
+              <div class="tiny hint">Optional: upload a cartoon avatar (Parent Mode).</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+          <div class="score">
+            <div class="chip">⭐ <span id="stars">0</span></div>
+            <div class="chip">🔥 <span id="streak">0</span></div>
+            <div class="chip">✅ <span id="correct">0</span></div>
+            <div class="chip">🧾 <span id="attempts">0</span></div>
+          </div>
+
+          <div style="height:12px"></div>
+          <div class="progress"><div id="progBar"></div></div>
+          <div class="muted tiny" style="margin-top:8px" id="progText">Not started</div>
+
+          <div style="height:16px"></div>
+          <button class="btn secondary" id="btnResetStats">Reset session stats</button>
+
+          <div style="height:10px"></div>
+          <div class="hint">
+            <div><b>Math format:</b> <span class="kbd">7+8</span>, <span class="kbd">12-5</span>, <span class="kbd">6x4</span>, <span class="kbd">18/3</span></div>
+            <div style="margin-top:6px"><b>Whole numbers only</b> (for now).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalBack" id="pinModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="hd">
+        <div class="title">Parent PIN required</div>
+        <div class="x" id="pinClose">✕</div>
+      </div>
+      <div class="bd">
+        <label>Enter PIN</label>
+        <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" />
+        <div class="hint" id="pinErr" style="color: #ff5c7a; margin-top:8px; display:none;">Wrong PIN</div>
+        <div style="height:12px"></div>
+        <div class="two">
+          <button class="btn" id="pinUnlock">Unlock</button>
+          <button class="btn secondary" id="pinCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Register service worker (offline cache)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    });
+  }
+</script>
+
+<script>
+(() => {
+  const S = {
+    get(key, fallback){
+      const v = localStorage.getItem(key);
+      return (v === null || v === undefined) ? fallback : v;
+    },
+    set(key, val){ localStorage.setItem(key, val); },
+    getBool(key, fallback){
+      const v = localStorage.getItem(key);
+      if (v === null) return fallback;
+      return v === "true";
+    },
+    setBool(key, val){ localStorage.setItem(key, String(!!val)); }
+  };
+
+  const Keys = {
+    childName: "sb_childName",
+    pin: "sb_pin",
+    deckMode: "sb_deckMode",
+    practiceMode: "sb_practiceMode",
+    shuffle: "sb_shuffle",
+    spelling: "sb_spelling",
+    math: "sb_math",
+    avatar: "sb_avatarDataUrl"
+  };
+
+  const state = {
+    inKidMode: false,
+    deck: [],
+    idx: 0,
+    stars: 0,
+    streak: 0,
+    correct: 0,
+    attempts: 0
+  };
+
+  const mainTitle = document.getElementById("mainTitle");
+  const mainBody  = document.getElementById("mainBody");
+  const btnExitKid = document.getElementById("btnExitKid");
+
+  const appTitle = document.getElementById("appTitle");
+  const childNameBig = document.getElementById("childNameBig");
+  const avatarBox = document.getElementById("avatarBox");
+
+  const modePill = document.getElementById("modePill");
+  const deckPill = document.getElementById("deckPill");
+  const practicePill = document.getElementById("practicePill");
+  const shufflePill = document.getElementById("shufflePill");
+
+  const starsEl = document.getElementById("stars");
+  const streakEl = document.getElementById("streak");
+  const correctEl = document.getElementById("correct");
+  const attemptsEl = document.getElementById("attempts");
+  const progBar = document.getElementById("progBar");
+  const progText = document.getElementById("progText");
+
+  const btnResetStats = document.getElementById("btnResetStats");
+
+  const pinModal = document.getElementById("pinModal");
+  const pinInput = document.getElementById("pinInput");
+  const pinErr = document.getElementById("pinErr");
+  const pinUnlock = document.getElementById("pinUnlock");
+  const pinCancel = document.getElementById("pinCancel");
+  const pinClose = document.getElementById("pinClose");
+
+  const normLines = (txt) => (txt || "")
+    .split(/\r?\n/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  function getSettings(){
+    return {
+      childName: (S.get(Keys.childName, "Charlie").trim() || "Charlie"),
+      pin: S.get(Keys.pin, "1234"),
+      deckMode: S.get(Keys.deckMode, "Mixed"),
+      practiceMode: S.get(Keys.practiceMode, "Practice"),
+      shuffle: S.getBool(Keys.shuffle, true),
+      spelling: S.get(Keys.spelling, "because\nfriend\nenough"),
+      math: S.get(Keys.math, "7+8\n12-5\n6x4\n18/3"),
+      avatar: S.get(Keys.avatar, "")
+    };
+  }
+
+  function setPills(settings){
+    modePill.textContent = state.inKidMode ? "Kid Mode" : "Parent Mode";
+    deckPill.textContent = settings.deckMode;
+    practicePill.textContent = settings.practiceMode;
+    shufflePill.textContent = settings.shuffle ? "Shuffle On" : "Shuffle Off";
+  }
+
+  function updateHeader(settings){
+    appTitle.textContent = `${settings.childName}’s Spelling + Math`;
+    childNameBig.textContent = settings.childName;
+  }
+
+  function updateAvatar(settings){
+    const dataUrl = settings.avatar;
+    avatarBox.innerHTML = dataUrl
+      ? `<img alt="avatar" src="${dataUrl}">`
+      : `<span class="muted" style="font-size:28px">🙂</span>`;
+  }
+
+  function speak(text){
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.92;
+    window.speechSynthesis.speak(u);
+  }
+
+  function mathParse(line){
+    let raw = (line || "").trim();
+    if (!raw) return null;
+    let s = raw.replace(/\s+/g,"").replace(/x/ig, "*");
+    const m = s.match(/^(-?\d+)([+\-*/])(-?\d+)$/);
+    if (!m) return null;
+    const a = parseInt(m[1], 10);
+    const sym = m[2];
+    const b = parseInt(m[3], 10);
+    if (sym === "/" && b === 0) return null;
+
+    let ans;
+    switch(sym){
+      case "+": ans = a + b; break;
+      case "-": ans = a - b; break;
+      case "*": ans = a * b; break;
+      case "/": ans = Math.trunc(a / b); break;
+      default: return null;
+    }
+    const opWord = ({"+":"plus","-":"minus","*":"times","/":"divided by"})[sym];
+    return { raw, a, b, sym, opWord, ans };
+  }
+
+  function buildDeck(settings){
+    const spell = normLines(settings.spelling);
+    const mathLines = normLines(settings.math);
+
+    let deck = [];
+    if (settings.deckMode === "Spelling" || settings.deckMode === "Mixed"){
+      deck.push(...spell.map(w => ({type:"spelling", word:w})));
+    }
+    if (settings.deckMode === "Math" || settings.deckMode === "Mixed"){
+      for (const line of mathLines){
+        const p = mathParse(line);
+        if (p) deck.push({type:"math", ...p});
+      }
+    }
+    if (settings.shuffle) deck = deck.sort(() => Math.random() - 0.5);
+    return deck;
+  }
+
+  function resetSession(){
+    state.idx = 0;
+    state.stars = 0;
+    state.streak = 0;
+    state.correct = 0;
+    state.attempts = 0;
+    updateStats();
+  }
+
+  function updateStats(){
+    starsEl.textContent = state.stars;
+    streakEl.textContent = state.streak;
+    correctEl.textContent = state.correct;
+    attemptsEl.textContent = state.attempts;
+
+    const total = state.deck.length || 0;
+    const done = Math.min(state.idx, total);
+    const pct = total ? Math.round((done/total)*100) : 0;
+    progBar.style.width = pct + "%";
+    progText.textContent = total ? `Progress: ${done} / ${total}` : "Not started";
+  }
+
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  function resizeCanvas(){
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function launchConfetti(){
+    const W = window.innerWidth, H = window.innerHeight;
+    let pieces = Array.from({length: 80}, () => ({
+      x: Math.random()*W, y: -20 - Math.random()*H*0.2,
+      r: 3 + Math.random()*5, vy: 2 + Math.random()*4,
+      vx: -1.5 + Math.random()*3, a: Math.random()*Math.PI*2,
+      va: -0.15 + Math.random()*0.3, life: 60 + Math.random()*40,
+      c: `hsl(${Math.floor(Math.random()*360)}, 90%, 60%)`
+    }));
+
+    let frame = 0;
+    function tick(){
+      frame++;
+      ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+      pieces.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.a += p.va; p.life -= 1;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.r, -p.r, p.r*2.2, p.r*1.2);
+        ctx.restore();
+      });
+      pieces = pieces.filter(p => p.life > 0 && p.y < window.innerHeight + 40);
+      if (pieces.length && frame < 140) requestAnimationFrame(tick);
+      else ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  let pinSuccessCallback = null;
+  function requestPinThen(cb){
+    pinSuccessCallback = cb;
+    pinErr.style.display = "none";
+    pinInput.value = "";
+    pinModal.style.display = "flex";
+    setTimeout(() => pinInput.focus(), 50);
+  }
+  function closePin(){
+    pinModal.style.display = "none";
+    pinErr.style.display = "none";
+    pinSuccessCallback = null;
+  }
+  function unlockPin(){
+    const settings = getSettings();
+    if (pinInput.value === settings.pin){
+      closePin();
+      if (typeof pinSuccessCallback === "function") pinSuccessCallback();
+    } else {
+      pinErr.style.display = "block";
+      pinInput.value = "";
+      pinInput.focus();
+    }
+  }
+  pinUnlock.addEventListener("click", unlockPin);
+  pinCancel.addEventListener("click", closePin);
+  pinClose.addEventListener("click", closePin);
+
+  btnExitKid.addEventListener("click", () => {
+    requestPinThen(() => {
+      state.inKidMode = false;
+      renderParent();
+    });
+  });
+
+  btnResetStats.addEventListener("click", () => {
+    resetSession();
+  });
+
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function fileToDataUrl(file){
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function renderParent(){
+    const settings = getSettings();
+    setPills(settings);
+    updateHeader(settings);
+    updateAvatar(settings);
+
+    state.inKidMode = false;
+    mainTitle.textContent = "Parent Mode";
+    btnExitKid.style.display = "none";
+
+    const mathLines = normLines(settings.math);
+    const invalid = mathLines.filter(l => !mathParse(l));
+    const mathMsg = (mathLines.length === 0) ? "" :
+      (invalid.length === 0 ? "✅ All math lines look valid." : `⚠️ ${invalid.length} math line(s) may be invalid.`);
+
+    mainBody.innerHTML = `
+      <div class="two">
+        <div>
+          <label>Child name</label>
+          <input id="p_childName" value="${escapeHtml(settings.childName)}" />
+        </div>
+        <div>
+          <label>Parent PIN</label>
+          <input id="p_pin" type="password" inputmode="numeric" value="${escapeHtml(settings.pin)}" />
+          <div class="hint">Used to exit Kid Mode.</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="two">
+        <div>
+          <label>Deck</label>
+          <select id="p_deckMode">
+            ${["Spelling","Math","Mixed"].map(v => `<option ${settings.deckMode===v?"selected":""}>${v}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Practice mode</label>
+          <select id="p_practiceMode">
+            ${["Practice","Test"].map(v => `<option ${settings.practiceMode===v?"selected":""}>${v}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="row">
+        <label style="margin:0; display:flex; gap:10px; align-items:center; cursor:pointer;">
+          <input id="p_shuffle" type="checkbox" ${settings.shuffle ? "checked":""} style="width:auto; transform: scale(1.15);" />
+          Shuffle each session
+        </label>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="two">
+        <div>
+          <label>Spelling words (one per line)</label>
+          <textarea id="p_spelling">${escapeHtml(settings.spelling)}</textarea>
+        </div>
+        <div>
+          <label>Math problems (one per line)</label>
+          <textarea id="p_math">${escapeHtml(settings.math)}</textarea>
+          <div class="hint" style="margin-top:6px">${mathMsg || ""}</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="two">
+        <div>
+          <label>Avatar (optional)</label>
+          <input id="p_avatar" type="file" accept="image/*" />
+          <div class="hint">Upload a cartoon avatar of Charlie (saved on this device).</div>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+          <button class="btn" id="p_startKid">Start Kid Mode</button>
+          <div style="height:10px"></div>
+          <button class="btn secondary" id="p_testSpeak">Test voice</button>
+        </div>
+      </div>
+    `;
+
+    const $ = (id) => document.getElementById(id);
+    $("p_childName").addEventListener("input", e => { S.set(Keys.childName, e.target.value); updateHeader(getSettings()); });
+    $("p_pin").addEventListener("input", e => S.set(Keys.pin, e.target.value || "1234"));
+    $("p_deckMode").addEventListener("change", e => { S.set(Keys.deckMode, e.target.value); setPills(getSettings()); });
+    $("p_practiceMode").addEventListener("change", e => { S.set(Keys.practiceMode, e.target.value); setPills(getSettings()); });
+    $("p_shuffle").addEventListener("change", e => { S.setBool(Keys.shuffle, e.target.checked); setPills(getSettings()); });
+    $("p_spelling").addEventListener("input", e => S.set(Keys.spelling, e.target.value));
+    $("p_math").addEventListener("input", e => S.set(Keys.math, e.target.value));
+    $("p_testSpeak").addEventListener("click", () => speak(`Hi ${getSettings().childName}! Let’s practice spelling and math.`));
+    $("p_avatar").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const dataUrl = await fileToDataUrl(file);
+      S.set(Keys.avatar, dataUrl);
+      updateAvatar(getSettings());
+    });
+    $("p_startKid").addEventListener("click", () => startKidMode(getSettings()));
+  }
+
+  function renderKid(){
+    const settings = getSettings();
+    setPills(settings);
+    updateHeader(settings);
+    updateAvatar(settings);
+
+    mainTitle.textContent = "Kid Mode";
+    btnExitKid.style.display = "inline-block";
+
+    if (state.deck.length === 0){
+      mainBody.innerHTML = `
+        <div class="big">No items to practice</div>
+        <div class="muted">Ask a parent to add spelling words and/or math problems.</div>
+        <div style="height:14px"></div>
+        <button class="btn secondary" id="k_parent">Parent Mode</button>
+      `;
+      document.getElementById("k_parent").addEventListener("click", () => requestPinThen(renderParent));
+      updateStats();
+      return;
+    }
+
+    if (state.idx >= state.deck.length){
+      mainBody.innerHTML = `
+        <div class="big">Awesome work, ${escapeHtml(settings.childName)}! 🎉</div>
+        <div class="muted" style="font-size:18px">Score: ${state.correct} / ${state.attempts}</div>
+        <div style="height:12px"></div>
+        <button class="btn" id="k_playAgain">Play Again</button>
+        <div style="height:10px"></div>
+        <button class="btn secondary" id="k_parent">Parent Mode</button>
+      `;
+      document.getElementById("k_playAgain").addEventListener("click", () => startKidMode(settings));
+      document.getElementById("k_parent").addEventListener("click", () => requestPinThen(renderParent));
+      updateStats();
+      return;
+    }
+
+    const card = state.deck[state.idx];
+    const isMath = card.type === "math";
+    const promptBtn = isMath ? "Hear Problem" : "Hear Word";
+    const placeholder = isMath ? `Type the answer, ${settings.childName}…` : `Type it, ${settings.childName}…`;
+    const kb = isMath ? "inputmode='numeric'" : "";
+
+    mainBody.innerHTML = `
+      <div class="muted">Item ${state.idx + 1} of ${state.deck.length} • ${escapeHtml(settings.practiceMode)} • ${escapeHtml(settings.deckMode)}</div>
+      <div style="height:10px"></div>
+
+      <button class="btn" id="k_speak">🔊 ${promptBtn}</button>
+
+      <div style="height:12px"></div>
+      <label>${isMath ? "Answer" : "Spelling"}</label>
+      <input id="k_input" ${kb} autocomplete="off" spellcheck="false" placeholder="${escapeHtml(placeholder)}" />
+
+      <div style="height:12px"></div>
+      <div class="two">
+        <button class="btn secondary" id="k_repeat">Repeat</button>
+        <button class="btn" id="k_check">Check</button>
+      </div>
+
+      <div id="k_feedback"></div>
+    `;
+
+    const kInput = document.getElementById("k_input");
+    kInput.focus();
+
+    const speakCard = () => {
+      if (!isMath) speak(`Spell the word: ${card.word}`);
+      else speak(`What is ${card.a} ${card.opWord} ${card.b}?`);
+    };
+
+    const renderFeedback = (msg, kind) => {
+      const box = document.getElementById("k_feedback");
+      if (!msg) { box.innerHTML = ""; return; }
+      const cls = kind === "good" ? "feedback good" : (kind === "bad" ? "feedback bad" : "feedback");
+      box.innerHTML = `<div class="${cls}">${escapeHtml(msg)}</div>`;
+    };
+
+    const check = () => {
+      const guessRaw = (kInput.value || "").trim();
+      state.attempts++;
+
+      if (!isMath){
+        const ok = guessRaw.toLowerCase() === String(card.word).trim().toLowerCase();
+        if (ok){
+          state.correct++; state.stars++; state.streak++;
+          renderFeedback(`Great job, ${settings.childName}! ⭐`, "good");
+          launchConfetti();
+          setTimeout(next, 650);
+        } else {
+          state.streak = 0;
+          if (settings.practiceMode === "Practice"){
+            renderFeedback(`Try again, ${settings.childName} 💪`, "bad");
+            kInput.value = ""; kInput.focus();
+          } else {
+            renderFeedback(`Nice try, ${settings.childName}.\nCorrect: ${card.word}`, "bad");
+            setTimeout(next, 1000);
+          }
+        }
+      } else {
+        const guess = /^-?\d+$/.test(guessRaw) ? parseInt(guessRaw, 10) : NaN;
+        const ok = Number.isInteger(guess) && guess === card.ans;
+
+        if (ok){
+          state.correct++; state.stars++; state.streak++;
+          renderFeedback(`Boom! Nice math, ${settings.childName}! ⭐`, "good");
+          launchConfetti();
+          setTimeout(next, 650);
+        } else {
+          state.streak = 0;
+          if (settings.practiceMode === "Practice"){
+            renderFeedback(`Try again, ${settings.childName} 💪`, "bad");
+            kInput.value = ""; kInput.focus();
+          } else {
+            renderFeedback(`Nice try, ${settings.childName}.\nCorrect: ${card.a} ${card.sym} ${card.b} = ${card.ans}`, "bad");
+            setTimeout(next, 1000);
+          }
+        }
+      }
+
+      updateStats();
+    };
+
+    document.getElementById("k_speak").addEventListener("click", () => { speakCard(); kInput.focus(); });
+    document.getElementById("k_repeat").addEventListener("click", () => { speakCard(); kInput.focus(); });
+    document.getElementById("k_check").addEventListener("click", check);
+    kInput.addEventListener("keydown", (e) => { if (e.key === "Enter") check(); });
+
+    updateStats();
+    setTimeout(speakCard, 300);
+  }
+
+  function next(){
+    state.idx++;
+    renderKid();
+  }
+
+  function startKidMode(settings){
+    state.inKidMode = true;
+    state.deck = buildDeck(settings);
+    resetSession();
+    renderKid();
+  }
+
+  function boot(){
+    const settings = getSettings();
+    setPills(settings);
+    updateHeader(settings);
+    updateAvatar(settings);
+    renderParent();
+    updateStats();
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
